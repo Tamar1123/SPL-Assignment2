@@ -50,13 +50,27 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
         return timeIdle.get();
     }
 
+    // Update idle time.
+    public void setIdleTime(long now) {
+        long oldVal;
+        long newVal;
+        do {
+            oldVal = timeIdle.get();
+            newVal = oldVal + (now - idleStartTime.get());
+        } while (!timeIdle.compareAndSet(oldVal,newVal));
+    }
+
     /**
      * Assign a task to this worker.
      * This method is non-blocking: if the worker is not ready to accept a task,
      * it throws IllegalStateException.
      */
-    public void newTask(Runnable task) {
-       // TODO
+    public void newTask(Runnable task) {  
+        if (isBusy() || !isAlive()) {
+            throw new IllegalStateException("Worker is not ready to accept a new task");
+        } 
+        handoff.offer(task);
+        busy.compareAndSet(false,true);
     }
 
     /**
@@ -64,17 +78,53 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
      * Inserts a poison pill so the worker wakes up and exits.
      */
     public void shutdown() {
-       // TODO
+        try {
+            handoff.add(POISON_PILL);
+        } catch (IllegalStateException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     @Override
     public void run() {
-       // TODO
+        Runnable task = null;
+        while (alive.get()) {
+            try {
+                task = handoff.take();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                shutdown();
+            }
+            if (task == POISON_PILL) {
+                alive.compareAndSet(true, false);
+                return;
+            }
+            executeTask(task);
+        }   
+    }
+
+    private synchronized void executeTask(Runnable task) {
+        timeIdle.addAndGet(System.nanoTime() - idleStartTime.get());
+        long busyStartTime = System.nanoTime();
+        task.run();
+        timeUsed.addAndGet(System.nanoTime() - busyStartTime);
+        idleStartTime.set(System.nanoTime());
+        
+        if(Thread.currentThread().isInterrupted()) {
+            shutdown();
+        }
+        
+        busy.compareAndSet(true, false);
+        
     }
 
     @Override
     public int compareTo(TiredThread o) {
-        // TODO
-        return 0;
+        double diff = getFatigue()-o.getFatigue();
+        if (diff == 0) 
+            return 0;
+        if (diff > 0)
+            return 1;
+        return -1;
     }
 }
