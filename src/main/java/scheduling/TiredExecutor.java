@@ -24,54 +24,58 @@ public class TiredExecutor {
     } 
 
     public void submit(Runnable task) {
-        TiredThread worker = idleMinHeap.poll();        
+        TiredThread worker = null;
         while (worker == null) {
-            synchronized (this) {
-                try {
-                this.wait();
-                } catch (InterruptedException e) {
+            try {
+                worker = idleMinHeap.take(); // blocks until a worker is available
+            } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                }
-                worker = idleMinHeap.poll();
             }
         }
-        worker.newTask(task);
+        TiredThread finalWorker = worker;
+
+        Runnable wrappedTask = () -> {
+            try {
+                
+                task.run();
+                
+            } finally {
+                inFlight.decrementAndGet();
+                idleMinHeap.add(finalWorker);
+                
+            }
+        };
         inFlight.incrementAndGet();
+        finalWorker.newTask(wrappedTask);
     }
 
 
     public void submitAll(Iterable<Runnable> tasks) {
         for (Runnable task : tasks) {
             submit(task);
-            } 
+        } 
         
     }
 
     public void shutdown() throws InterruptedException {
-        for (int i = 0; i < workers.length; i++) {
-            workers[i].shutdown();
-            if (Thread.currentThread().isInterrupted()) {
-                throw new InterruptedException("This thread was interrupted while shutdown");
-            }
+        for (TiredThread worker : workers) {
+            worker.shutdown();
+        }
+        for (TiredThread worker : workers) {
+            worker.join();
         }
     }
 
     public synchronized String getWorkerReport() {
-        // TODO: return readable statistics for each worker
-        return null;
+        String report = "Worker Report:\n";
+        for (TiredThread worker : workers) {
+            report += String.format("Worker %d - Fatigue: %.2f, Time Used: %.2f s, Time Idle: %.2f s\n",
+                    worker.getWorkerId(),
+                    worker.getFatigue(),
+                    worker.getTimeUsed() / 1_000_000_000.0,
+                    worker.getTimeIdle() / 1_000_000_000.0);
+        }
+        return report;
     }
-
-    // public synchronized void notifyIdle(TiredThread worker) {
-    //     long now = System.nanoTime();
-    //     for (TiredThread t : idleMinHeap) {
-    //         if (t.isBusy() == false) {
-                
-    //         }
-    //     }
-    //     idleMinHeap.add(worker);
-    //     this.notify();
-    // }
-
-
 
 }

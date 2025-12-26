@@ -60,15 +60,25 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
         } while (!timeIdle.compareAndSet(oldVal,newVal));
     }
 
+    public void increaseTimeUsed(long time) {
+        long oldVal;
+        long newVal;
+        do {
+            oldVal = timeUsed.get();
+            newVal = oldVal + time;
+        } while (!timeUsed.compareAndSet(oldVal,newVal));
+    }
+
     /**
      * Assign a task to this worker.
      * This method is non-blocking: if the worker is not ready to accept a task,
      * it throws IllegalStateException.
      */
-    public void newTask(Runnable task) {  
+    public void newTask(Runnable task) {
         if (isBusy() || !isAlive()) {
             throw new IllegalStateException("Worker is not ready to accept a new task");
-        } 
+        }
+        
         handoff.offer(task);
         busy.compareAndSet(false,true);
     }
@@ -105,17 +115,17 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
 
     private synchronized void executeTask(Runnable task) {
         timeIdle.addAndGet(System.nanoTime() - idleStartTime.get());
-        long busyStartTime = System.nanoTime();
+        long startTime = System.nanoTime();
         task.run();
-        timeUsed.addAndGet(System.nanoTime() - busyStartTime);
+        long endTime = System.nanoTime();        
         idleStartTime.set(System.nanoTime());
+        increaseTimeUsed(endTime - startTime);
         
+        busy.compareAndSet(true, false);
         if(Thread.currentThread().isInterrupted()) {
             shutdown();
         }
-        
-        busy.compareAndSet(true, false);
-        
+
     }
 
     @Override
