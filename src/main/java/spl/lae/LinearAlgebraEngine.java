@@ -1,8 +1,8 @@
 package spl.lae;
 
 import parser.*;
-import memory.*;
 import scheduling.*;
+import memory.*;
 
 import java.util.List;
 

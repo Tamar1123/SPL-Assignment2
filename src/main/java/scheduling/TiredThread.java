@@ -51,13 +51,14 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
     }
 
     // Update idle time.
-    public void setIdleTime(long now) {
+    public void setIdleTime() {
         long oldVal;
         long newVal;
         do {
             oldVal = timeIdle.get();
-            newVal = oldVal + (now - idleStartTime.get());
+            newVal = oldVal + (System.nanoTime() - idleStartTime.get());
         } while (!timeIdle.compareAndSet(oldVal,newVal));
+        idleStartTime.set(System.nanoTime());
     }
 
     public void increaseTimeUsed(long time) {
@@ -74,13 +75,13 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
      * This method is non-blocking: if the worker is not ready to accept a task,
      * it throws IllegalStateException.
      */
-    public void newTask(Runnable task) {
-        if (isBusy() || !isAlive()) {
+    public synchronized void newTask(Runnable task) {
+       if (handoff.offer(task)) {
+            busy.set(true);
+        } else { 
             throw new IllegalStateException("Worker is not ready to accept a new task");
         }
-        
-        handoff.offer(task);
-        busy.compareAndSet(false,true);
+
     }
 
     /**
@@ -91,22 +92,23 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
         try {
             handoff.add(POISON_PILL);
         } catch (IllegalStateException e) {
-            Thread.currentThread().interrupt();
+            alive.set(false);
+            this.interrupt();
         }
     }
 
     @Override
     public void run() {
-        Runnable task = null;
         while (alive.get()) {
+            Runnable task;
             try {
                 task = handoff.take();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 shutdown();
+                continue;
             }
             if (task == POISON_PILL) {
-                alive.compareAndSet(true, false);
                 return;
             }
             executeTask(task);
@@ -115,17 +117,10 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
 
     private synchronized void executeTask(Runnable task) {
         timeIdle.addAndGet(System.nanoTime() - idleStartTime.get());
-        long startTime = System.nanoTime();
-        task.run();
-        long endTime = System.nanoTime();        
+        task.run();    
         idleStartTime.set(System.nanoTime());
-        increaseTimeUsed(endTime - startTime);
         
         busy.compareAndSet(true, false);
-        if(Thread.currentThread().isInterrupted()) {
-            shutdown();
-        }
-
     }
 
     @Override

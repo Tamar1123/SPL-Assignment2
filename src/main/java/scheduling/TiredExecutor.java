@@ -1,9 +1,7 @@
 package scheduling;
 
-import java.util.concurrent.PriorityBlockingQueue;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class TiredExecutor {
@@ -19,7 +17,9 @@ public class TiredExecutor {
             double fatigue = rand.nextDouble() + 0.5;
             workers[i] = new TiredThread(i, fatigue);
             idleMinHeap.add(workers[i]);
-            workers[i].start();
+        }
+        for (TiredThread worker : workers) {
+            worker.start();
         }
     } 
 
@@ -36,9 +36,10 @@ public class TiredExecutor {
 
         Runnable wrappedTask = () -> {
             try {
-                
+                long startTime = System.nanoTime();
                 task.run();
-                
+                long endTime = System.nanoTime();
+                finalWorker.increaseTimeUsed(endTime - startTime);
             } finally {
                 inFlight.decrementAndGet();
                 idleMinHeap.add(finalWorker);
@@ -46,7 +47,15 @@ public class TiredExecutor {
             }
         };
         inFlight.incrementAndGet();
-        finalWorker.newTask(wrappedTask);
+        try {
+            finalWorker.newTask(wrappedTask);
+        } catch (IllegalStateException e) {
+            inFlight.decrementAndGet();
+            idleMinHeap.add(finalWorker);
+            System.out.println("Task submission failed");
+            submit(task); // retry submitting the task
+        }
+        
     }
 
 
@@ -58,6 +67,7 @@ public class TiredExecutor {
     }
 
     public void shutdown() throws InterruptedException {
+        
         for (TiredThread worker : workers) {
             worker.shutdown();
         }
@@ -68,14 +78,23 @@ public class TiredExecutor {
 
     public synchronized String getWorkerReport() {
         String report = "Worker Report:\n";
+        
         for (TiredThread worker : workers) {
-            report += String.format("Worker %d - Fatigue: %.2f, Time Used: %.2f s, Time Idle: %.2f s\n",
+            if (!worker.isBusy())
+                worker.setIdleTime();
+            report += String.format("Worker %d - Current status: %s, Fatigue: %.2f, Time Used: %.2f s, Time Idle: %.2f s\n",
                     worker.getWorkerId(),
-                    worker.getFatigue(),
-                    worker.getTimeUsed() / 1_000_000_000.0,
+                    worker.isBusy() ? "Busy" : "Idle",  
+                    worker.getFatigue() / 1_000_000_000.0,
+                    worker.getTimeUsed() / 1_000_000_000.0, 
                     worker.getTimeIdle() / 1_000_000_000.0);
         }
         return report;
+    }
+
+    // Returns the number of tasks currently being executed
+    private int getInFlightCount() {
+        return inFlight.get();
     }
 
 }
