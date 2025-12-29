@@ -14,11 +14,29 @@ public class LinearAlgebraEngine {
 
     public LinearAlgebraEngine(int numThreads) {
         // TODO: create executor with given thread count
+        this.executor = new TiredExecutor(numThreads);
     }
 
     public ComputationNode run(ComputationNode computationRoot) {
         // TODO: resolve computation tree step by step until final matrix is produced
-        return null;
+        
+        if (computationRoot == null) {
+        throw new IllegalArgumentException("Computation root is null");
+        }
+
+        // needs to keep resolving until the root becomes a matrix
+        while (computationRoot.getNodeType() != ComputationNodeType.MATRIX) {
+
+            ComputationNode nodeToResolve = computationRoot.findResolvable();
+
+            if (nodeToResolve == null) {
+                throw new IllegalStateException("no resolvable node");
+            }
+
+            loadAndCompute(nodeToResolve);
+        }
+
+        return computationRoot;
     }
 
     public void loadAndCompute(ComputationNode node) {
@@ -28,17 +46,58 @@ public class LinearAlgebraEngine {
 
     public List<Runnable> createAddTasks() {
         // TODO: return tasks that perform row-wise addition
-        return null;
+        int rows = leftMatrix.length();
+
+        List<Runnable> tasks = new java.util.ArrayList<>();
+
+        for (int i = 0; i < rows; i++) {
+            final int row = i;
+
+            tasks.add(() -> {
+                SharedVector leftRow  = leftMatrix.get(row);
+                SharedVector rightRow = rightMatrix.get(row);
+
+
+                leftRow.add(rightRow);
+            });
+        }
+
+        return tasks;
     }
 
     public List<Runnable> createMultiplyTasks() {
         // TODO: return tasks that perform row × matrix multiplication
-        return null;
+        int rows = leftMatrix.length();
+        List<Runnable> tasks = new java.util.ArrayList<>();
+
+        for (int i = 0; i < rows; i++) {
+            final int row = i;
+
+            tasks.add(() -> {
+                SharedVector rowVector = leftMatrix.get(row);
+
+                rowVector.vecMatMul(rightMatrix);
+            });
+        }
+
+        return tasks;
     }
 
     public List<Runnable> createNegateTasks() {
         // TODO: return tasks that negate rows
-        return null;
+        int rows = leftMatrix.length();
+        List<Runnable> tasks = new java.util.ArrayList<>();
+
+        for (int i = 0; i < rows; i++) {
+            final int row = i;
+
+            tasks.add(() -> {
+                SharedVector vec = leftMatrix.get(row);
+                vec.negate();  // locking handled inside SharedVector
+            });
+        }
+
+        return tasks;
     }
 
     public List<Runnable> createTransposeTasks() {
