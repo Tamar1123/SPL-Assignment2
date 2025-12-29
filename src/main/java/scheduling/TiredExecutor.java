@@ -24,19 +24,6 @@ public class TiredExecutor {
     }
     
 
-    //deterministic constructor for testing.
-    public TiredExecutor(int numThreads, double[] fatigueFactors) {
-        workers = new TiredThread[numThreads];
-        for (int i = 0; i < numThreads; i++) {
-            double fatigue = fatigueFactors[i];
-            workers[i] = new TiredThread(i, fatigue);
-            idleMinHeap.add(workers[i]);
-        }
-        for (TiredThread worker : workers) {
-            worker.start();
-        }
-    }
-
     public void submit(Runnable task) {
         TiredThread worker = null;
         while (worker == null) {
@@ -55,8 +42,11 @@ public class TiredExecutor {
                 long endTime = System.nanoTime();
                 finalWorker.increaseTimeUsed(endTime - startTime);
             } finally {
-                inFlight.decrementAndGet();
-                idleMinHeap.add(finalWorker);
+                synchronized (inFlight) {
+                    inFlight.decrementAndGet();
+                    idleMinHeap.add(finalWorker);
+                    inFlight.notifyAll();
+                }
                 
             }
         };
@@ -64,14 +54,10 @@ public class TiredExecutor {
         try {
             finalWorker.newTask(wrappedTask);
         } catch (IllegalStateException e) {
-            synchronized (inFlight) {
-                inFlight.decrementAndGet();
-                idleMinHeap.add(finalWorker);
-                inFlight.notifyAll();
-            }
-            
+            inFlight.decrementAndGet();
+            idleMinHeap.add(finalWorker);
+            submit(task);
         }
-        
     }
 
 
