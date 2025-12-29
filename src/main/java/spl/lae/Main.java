@@ -7,7 +7,6 @@ import parser.InputParser;
 import parser.OutputWriter;
 
 public class Main {
-  
   public static void main(String[] args) throws IOException {
     int numThreads = Integer.parseInt(args[0]);
     String inputPath = args[1];

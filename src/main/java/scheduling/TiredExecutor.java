@@ -21,7 +21,21 @@ public class TiredExecutor {
         for (TiredThread worker : workers) {
             worker.start();
         }
-    } 
+    }
+    
+
+    //deterministic constructor for testing.
+    public TiredExecutor(int numThreads, double[] fatigueFactors) {
+        workers = new TiredThread[numThreads];
+        for (int i = 0; i < numThreads; i++) {
+            double fatigue = fatigueFactors[i];
+            workers[i] = new TiredThread(i, fatigue);
+            idleMinHeap.add(workers[i]);
+        }
+        for (TiredThread worker : workers) {
+            worker.start();
+        }
+    }
 
     public void submit(Runnable task) {
         TiredThread worker = null;
@@ -83,6 +97,9 @@ public class TiredExecutor {
     public void shutdown() throws InterruptedException {
         for (TiredThread worker : workers) {
             worker.shutdown();
+            if (Thread.currentThread().isInterrupted()) {
+                throw new InterruptedException("Executor shutdown interrupted");
+            }
         }
         for (TiredThread worker : workers) {
             worker.join();
