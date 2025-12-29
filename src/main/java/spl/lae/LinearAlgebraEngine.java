@@ -36,6 +36,11 @@ public class LinearAlgebraEngine {
             loadAndCompute(nodeToResolve);
         }
 
+        /* try{
+          executor.shutdown();
+        }
+        catch(InterruptedException e){} */
+    
         return computationRoot;
     }
 
@@ -47,40 +52,44 @@ public class LinearAlgebraEngine {
 
         double[][] left = children.get(0).getMatrix();
         leftMatrix.loadRowMajor(left);
+        
 
         if(children.size() > 1){
             double[][] right = children.get(1).getMatrix();
             rightMatrix.loadRowMajor(right);
         }
 
+        List<Runnable> tasks;
+        rightMatrix.loadRowMajor(new double[0][0]);
+        
         switch (type) {
             case ADD:
-                createAddTasks();
+                tasks = createAddTasks();
                 break;
             case MULTIPLY:
-                createMultiplyTasks();
+                tasks = createMultiplyTasks();
                 break;
             case NEGATE:
-                createNegateTasks();
+                tasks = createNegateTasks();
                 break;
             case TRANSPOSE:
-                createTransposeTasks();
+                tasks = createTransposeTasks();
+                break;
         
             default:
                 throw new IllegalArgumentException("Unknown/unsupported computation type " + type);
         }
 
 
-        List<Runnable> tasks = null;
-
+        
         executor.submitAll(tasks);
-        /* while(true){
+        /*  while(true){
             try{
                 executor.shutdown();
                 break;
             }
             catch(new InterruptedException());
-        } */
+        }  */
 
         double[][] result = leftMatrix.readRowMajor();
         node.resolve(result);
@@ -104,7 +113,7 @@ public class LinearAlgebraEngine {
                 leftRow.add(rightRow);
             });
         }
-
+       
         return tasks;
     }
 
@@ -178,5 +187,9 @@ public class LinearAlgebraEngine {
         }
         return sb.toString();
         
+    }
+
+    public void shutdown() throws InterruptedException{
+        executor.shutdown();
     }
 }
