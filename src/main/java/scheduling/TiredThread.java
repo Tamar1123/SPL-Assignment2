@@ -90,8 +90,8 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
      */
     public void shutdown() {
         try {
-            handoff.add(POISON_PILL);
-        } catch (IllegalStateException e) {
+            handoff.put(POISON_PILL);
+        } catch (InterruptedException e) {
             alive.set(false);
             this.interrupt();
         }
@@ -109,7 +109,8 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
                 continue;
             }
             if (task == POISON_PILL) {
-                return;
+                alive.set(false);
+                break;
             }
             executeTask(task);
         }   

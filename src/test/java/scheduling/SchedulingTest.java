@@ -23,14 +23,19 @@ public class SchedulingTest {
       for (int i = 0; i < 10; i++) {
           final int taskId = i;
           executor.submit(() -> {
-              System.out.printf("Task %d is running on thread %d%n", taskId, ((TiredThread)(Thread.currentThread())).getWorkerId());
+
+            System.out.printf("Task %d is running on thread %d%n %s \n \n",
+            taskId,
+            ((TiredThread)(Thread.currentThread())).getWorkerId(),
+            executor.getWorkerReport()); 
+
               try {
-                  Thread.sleep(1000); // Simulate work
+                  Thread.sleep(500); // Simulate work
               } catch (InterruptedException e) {
                   Thread.currentThread().interrupt();
               }
           });
-          System.out.println(executor.getWorkerReport());
+          
       }
         executor.shutdown();
     }

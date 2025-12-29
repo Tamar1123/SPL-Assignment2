@@ -50,10 +50,12 @@ public class TiredExecutor {
         try {
             finalWorker.newTask(wrappedTask);
         } catch (IllegalStateException e) {
-            inFlight.decrementAndGet();
-            idleMinHeap.add(finalWorker);
-            System.out.println("Task submission failed");
-            submit(task); // retry submitting the task
+            synchronized (inFlight) {
+                inFlight.decrementAndGet();
+                idleMinHeap.add(finalWorker);
+                inFlight.notifyAll();
+            }
+            
         }
         
     }
@@ -62,12 +64,23 @@ public class TiredExecutor {
     public void submitAll(Iterable<Runnable> tasks) {
         for (Runnable task : tasks) {
             submit(task);
-        } 
+        }
+
+        //Wait for all tasks to be completed
+        synchronized (inFlight) {
+            while (inFlight.get() > 0) {
+                try {
+                    inFlight.wait();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                } 
+            }
+        }
         
     }
 
+
     public void shutdown() throws InterruptedException {
-        
         for (TiredThread worker : workers) {
             worker.shutdown();
         }
@@ -90,11 +103,6 @@ public class TiredExecutor {
                     worker.getTimeIdle() / 1_000_000_000.0);
         }
         return report;
-    }
-
-    // Returns the number of tasks currently being executed
-    private int getInFlightCount() {
-        return inFlight.get();
     }
 
 }
