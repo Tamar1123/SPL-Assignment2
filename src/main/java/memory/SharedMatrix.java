@@ -23,8 +23,9 @@ public class SharedMatrix {
             newVectors[i] = new SharedVector(matrix[i], VectorOrientation.ROW_MAJOR);
         }
 
-        vectors = newVectors;
+        this.vectors = newVectors;
     }
+
 
     public void loadColumnMajor(double[][] matrix) {
         // TODO: replace internal data with new column-major matrix
@@ -50,6 +51,8 @@ public class SharedMatrix {
         vectors = newVectors;
 
     }
+
+    
 
     public double[][] readRowMajor() {
         // TODO: return matrix contents as a row-major double[][]

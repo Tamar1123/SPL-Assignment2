@@ -80,4 +80,40 @@ public class LinearAlgebraEngineTest {
 
         assertEquals("Illegal operation: dimensions mismatch", exception.getMessage());
     }
+
+    @Test
+    public void testMemoryIsolationBetweenRuns() {
+    // Run 1: 1 + 1 = 2
+    double[][] one = {{1.0}};
+    ComputationNode run1 = new ComputationNode(ComputationNodeType.ADD, 
+        List.of(new ComputationNode(one), new ComputationNode(one)));
+    lae.run(run1); // Result should be 2.0
+
+    // Run 2: 1 + 1 should still be 2
+    // If there is a bug, this might return 3.0 or 4.0
+    ComputationNode run2 = new ComputationNode(ComputationNodeType.ADD, 
+        List.of(new ComputationNode(one), new ComputationNode(one)));
+    ComputationNode resultNode = lae.run(run2);
+    
+    assertEquals(2.0, resultNode.getMatrix()[0][0], "Memory leaked from previous run!");
+    }
+    @Test
+    public void testAssociativeNestingStructure() {
+    double[][] val = {{1.0}};
+    List<ComputationNode> children = new ArrayList<>(List.of(
+        new ComputationNode(val), 
+        new ComputationNode(val), 
+        new ComputationNode(val)
+    ));
+    ComputationNode root = new ComputationNode(ComputationNodeType.ADD, children);
+    
+    // Apply nesting
+    root.associativeNesting();
+
+    // Verify structure: Root should now have 2 children, 
+    // and the first child should be another ADD node.
+    assertEquals(2, root.getChildren().size(), "Root should be binary after nesting");
+    assertEquals(ComputationNodeType.ADD, root.getChildren().get(0).getNodeType(), 
+        "Left child should be a nested ADD node");
+    }
 }

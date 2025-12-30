@@ -45,53 +45,97 @@ public class LinearAlgebraEngine {
         return computationRoot;
     }
 
+    // public void loadAndCompute(ComputationNode node) {
+    //     // TODO: load operand matrices
+    //     // TODO: create compute tasks & submit tasks to executor
+    //     validateTaskDimensions(node);
+    //     ComputationNodeType type = node.getNodeType();
+    //     List<ComputationNode> children = node.getChildren();
+
+    //     double[][] left = children.get(0).getMatrix();
+    //     leftMatrix.loadRowMajor(left);
+        
+
+    //     if(children.size() > 1){
+    //         double[][] right = children.get(1).getMatrix();
+    //         rightMatrix.loadRowMajor(right);
+    //     }
+
+    //     List<Runnable> tasks;
+        
+    //     switch (type) {
+    //         case ADD:
+    //             tasks = createAddTasks();
+    //             break;
+    //         case MULTIPLY:
+    //             tasks = createMultiplyTasks();
+    //             break;
+    //         case NEGATE:
+    //             tasks = createNegateTasks();
+    //             break;
+    //         case TRANSPOSE:
+    //             tasks = createTransposeTasks();
+    //             break;
+        
+    //         default:
+    //             throw new IllegalArgumentException("Unknown/unsupported computation type " + type);
+    //     }
+        
+    //     executor.submitAll(tasks);
+    //     // try {
+    //     //      executor.shutdown();
+    //     // } catch (InterruptedException e) {
+    //     //     throw new RuntimeException("Executor shutdown interrupted");
+    //     // }
+
+    //     double[][] result = leftMatrix.readRowMajor();
+    //     node.resolve(result);
+
+    // }
     public void loadAndCompute(ComputationNode node) {
-        // TODO: load operand matrices
-        // TODO: create compute tasks & submit tasks to executor
-        validateTaskDimensions(node);
-        ComputationNodeType type = node.getNodeType();
-        List<ComputationNode> children = node.getChildren();
+    validateTaskDimensions(node);
+    ComputationNodeType type = node.getNodeType();
+    List<ComputationNode> children = node.getChildren();
 
-        double[][] left = children.get(0).getMatrix();
-        leftMatrix.loadRowMajor(left);
-        
-
-        if(children.size() > 1){
-            double[][] right = children.get(1).getMatrix();
-            rightMatrix.loadRowMajor(right);
-        }
-
-        List<Runnable> tasks;
-        
-        switch (type) {
-            case ADD:
-                tasks = createAddTasks();
-                break;
-            case MULTIPLY:
-                tasks = createMultiplyTasks();
-                break;
-            case NEGATE:
-                tasks = createNegateTasks();
-                break;
-            case TRANSPOSE:
-                tasks = createTransposeTasks();
-                break;
-        
-            default:
-                throw new IllegalArgumentException("Unknown/unsupported computation type " + type);
-        }
-        
-        executor.submitAll(tasks);
-        // try {
-        //      executor.shutdown();
-        // } catch (InterruptedException e) {
-        //     throw new RuntimeException("Executor shutdown interrupted");
-        // }
-
-        double[][] result = leftMatrix.readRowMajor();
-        node.resolve(result);
-
+    // 1. Deep Copy the Left Matrix to prevent "Dirty Memory" accumulation
+    double[][] originalLeft = children.get(0).getMatrix();
+    double[][] deepCopyLeft = new double[originalLeft.length][];
+    for (int i = 0; i < originalLeft.length; i++) {
+        // This ensures M1 gets a fresh memory address
+        deepCopyLeft[i] = originalLeft[i].clone(); 
     }
+    leftMatrix.loadRowMajor(deepCopyLeft);
+
+    // 2. Load Right Matrix if it exists
+    if (children.size() > 1) {
+        rightMatrix.loadRowMajor(children.get(1).getMatrix());
+    } else {
+        rightMatrix.loadRowMajor(new double[0][0]);
+    }
+
+    // 3. Your Switch Statement (Now Compiling)
+    List<Runnable> tasks;
+    switch (type) {
+        case ADD:
+            tasks = createAddTasks();
+            break;
+        case MULTIPLY:
+            tasks = createMultiplyTasks();
+            break;
+        case NEGATE:
+            tasks = createNegateTasks();
+            break;
+        case TRANSPOSE:
+            tasks = createTransposeTasks();
+            break;
+        default:
+            throw new IllegalArgumentException("Unknown type: " + type);
+    }
+
+    // 4. Submit and Resolve
+    executor.submitAll(tasks);
+    node.resolve(leftMatrix.readRowMajor());
+}
 
     public List<Runnable> createAddTasks() {
         // TODO: return tasks that perform row-wise addition
