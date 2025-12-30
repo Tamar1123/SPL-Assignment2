@@ -205,8 +205,7 @@ public class LinearAlgebraEngineTest {
         assertEquals(1, res.length);
         assertEquals(2, res[0].length);
         
-        // Calculation: 
-        // [1*1 + 2*3 + 3*5,  1*2 + 2*4 + 3*6] = [1+6+15, 2+8+18] = [22, 28]
+       // Result expectet [22, 28]
         assertEquals(22.0, res[0][0], 0.0001);
         assertEquals(28.0, res[0][1], 0.0001);
     }
@@ -229,10 +228,7 @@ public class LinearAlgebraEngineTest {
 
     @Test
     public void testMixedNegativeArithmetic() {
-        // Edge Case: (A * B) + Negate(C) with negative numbers
-        // A=[-1], B=[2] -> -2
-        // C=[5] -> Negate(C)=[-5]
-        // Result: -2 + (-5) = -7
+        // Result expected: -2 + (-5) = -7
         
         ComputationNode a = new ComputationNode(new double[][]{{-1.0}});
         ComputationNode b = new ComputationNode(new double[][]{{2.0}});
