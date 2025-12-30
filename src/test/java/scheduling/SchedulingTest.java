@@ -99,7 +99,6 @@ public class SchedulingTest {
     executor.shutdown();
     }
 
-<<<<<<< HEAD
 
     // --- NEW EDGE CASE TESTS START HERE ---
 
@@ -120,6 +119,4 @@ public class SchedulingTest {
             // fail if interrupted unexpectedly
         }
     }
-=======
->>>>>>> 3e235a5b08805df010353aefa2c788e5acf065c2
 }
