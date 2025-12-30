@@ -137,7 +137,6 @@ public class SharedVector {
     }
 
     public void vecMatMul(SharedMatrix matrix) {
-        // TODO: compute row-vector × matrix
 
         if (matrix == null) {
             throw new IllegalArgumentException("matrix is null");
