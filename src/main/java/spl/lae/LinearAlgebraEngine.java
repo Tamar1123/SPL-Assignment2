@@ -179,10 +179,6 @@ public class LinearAlgebraEngine {
     }
 
 
-    public void shutdown() throws InterruptedException{
-        executor.shutdown();
-    }
-
 
     private void validateTaskDimensions(ComputationNode node) {
     ComputationNodeType type = node.getNodeType();
