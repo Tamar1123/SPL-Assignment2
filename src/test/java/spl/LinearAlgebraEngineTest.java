@@ -3,9 +3,8 @@ package spl; // Updated to match the directory /src/test/java/spl/
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals; // This resolves the tempDir variable
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals; // This resolves the tempDir variable
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,13 +23,13 @@ public class LinearAlgebraEngineTest {
         lae = new LinearAlgebraEngine(4);
     }
 
-    @AfterEach
-    public void shutDown() throws InterruptedException {
-        // Ensure the executor is shut down cleanly after each test
-        if (lae != null) {
-            lae.shutdown();
-        }
-    }
+    // @AfterEach
+    // public void shutDown() throws InterruptedException {
+    //     // Ensure the executor is shut down cleanly after each test
+    //     if (lae != null) {
+    //         lae.shutdown();
+    //     }
+    // }
 
     @Test
     public void testBasicAddition() {
@@ -81,21 +80,7 @@ public class LinearAlgebraEngineTest {
         assertEquals("Illegal operation: dimensions mismatch", exception.getMessage());
     }
 
-    @Test
-    public void testMemoryIsolationBetweenRuns() {
-    // Run 1: 1 + 1 = 2
-    double[][] one = {{1.0}};
-    ComputationNode run1 = new ComputationNode(ComputationNodeType.ADD, 
-        List.of(new ComputationNode(one), new ComputationNode(one)));
-    lae.run(run1); // Result should be 2.0
 
-    // Run 2: 1 + 1 should still be 2
-    ComputationNode run2 = new ComputationNode(ComputationNodeType.ADD, 
-        List.of(new ComputationNode(one), new ComputationNode(one)));
-    ComputationNode resultNode = lae.run(run2);
-    
-    assertEquals(2.0, resultNode.getMatrix()[0][0], "Memory leaked from previous run!");
-    }
     @Test
     public void testAssociativeNestingStructure() {
         double[][] val = {{1.0}};

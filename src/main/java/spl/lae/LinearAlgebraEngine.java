@@ -37,6 +37,13 @@ public class LinearAlgebraEngine {
             loadAndCompute(nodeToResolve);
         }
 
+        try {
+            executor.shutdown();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Executor shutdown interrupted", e);
+        }
+
         return computationRoot;
     }
 

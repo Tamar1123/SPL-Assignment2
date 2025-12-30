@@ -88,9 +88,6 @@ public class TiredExecutor {
         for (TiredThread worker : workers) {
             worker.shutdown();
         }
-        for (TiredThread worker : workers) {
-            worker.join();
-        }
     }
 
     // public synchronized String getWorkerReport() {
