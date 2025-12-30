@@ -95,8 +95,6 @@ public class SharedMatrixTest {
     }
 
 
-    // --- NEW EDGE CASE TESTS START HERE ---
-
     @Test
     public void testSingleElementMatrix() {
         // Edge Case: 1x1 Matrix

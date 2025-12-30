@@ -100,8 +100,6 @@ public class SchedulingTest {
     }
 
 
-    // --- NEW EDGE CASE TESTS START HERE ---
-
     @Test
     public void testSubmitEmptyTaskList() {
         // Edge Case: Submit an empty list of tasks.

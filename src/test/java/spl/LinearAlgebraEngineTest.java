@@ -181,7 +181,6 @@ public class LinearAlgebraEngineTest {
         }
     }
 
-// --- NEW EDGE CASE TESTS START HERE ---
 
     @Test
     public void testMultiplicationDimensionChange() {

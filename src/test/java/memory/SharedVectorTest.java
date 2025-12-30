@@ -76,9 +76,6 @@ public class SharedVectorTest {
 
 
 
-
-    // --- NEW EDGE CASE TESTS START HERE ---
-
     @Test
     public void testVecMatMulResizing() {
         // Edge Case: Ensure the vector object updates its length and data correctly 
