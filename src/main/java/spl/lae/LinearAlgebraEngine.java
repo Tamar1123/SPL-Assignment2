@@ -24,7 +24,11 @@ public class LinearAlgebraEngine {
         if (computationRoot == null) {
         throw new IllegalArgumentException("Computation root is null");
         }
-        computationRoot.associativeNesting();
+        //computationRoot.associativeNesting();
+        // FIX: Call the recursive helper instead of the single node method
+        recursiveAssociativeNesting(computationRoot);
+
+        //applyAssociativeNestingForMultiply(computationRoot);
         // needs to keep resolving until the root becomes a matrix
         while (computationRoot.getNodeType() != ComputationNodeType.MATRIX) {
 
@@ -93,6 +97,7 @@ public class LinearAlgebraEngine {
 
     // }
     public void loadAndCompute(ComputationNode node) {
+    //node.associativeNesting();
     validateTaskDimensions(node);
     ComputationNodeType type = node.getNodeType();
     List<ComputationNode> children = node.getChildren();
@@ -238,31 +243,61 @@ public class LinearAlgebraEngine {
     ComputationNodeType type = node.getNodeType();
     List<ComputationNode> children = node.getChildren();
 
-    // Addition: Matrices must have identical dimensions 
+    // ADD: all matrices must have identical dimensions
     if (type == ComputationNodeType.ADD) {
-        double[][] left = children.get(0).getMatrix();
-        double[][] right = children.get(1).getMatrix();
-        if (left.length != right.length || (left.length > 0 && left[0].length != right[0].length)) {
-            throw new IllegalArgumentException("Illegal operation: dimensions mismatch");
+        for (int i = 1; i < children.size(); i++) {
+            double[][] a = children.get(0).getMatrix();
+            double[][] b = children.get(i).getMatrix();
+
+            if (a.length != b.length ||
+                (a.length > 0 && a[0].length != b[0].length)) {
+                throw new IllegalArgumentException("Illegal operation: dimensions mismatch");
+            }
         }
     }
 
-    // Multiplication: Columns of left must match rows of right 
+    // MULTIPLY: left columns must match right rows
     if (type == ComputationNodeType.MULTIPLY) {
         double[][] left = children.get(0).getMatrix();
         double[][] right = children.get(1).getMatrix();
+
         if (left.length > 0 && left[0].length != right.length) {
             throw new IllegalArgumentException("Illegal operation: dimensions mismatch");
         }
     }
 
-    // Unary Operators: Ensure exactly one operand is present 
+    // UNARY operators
     if (type == ComputationNodeType.NEGATE || type == ComputationNodeType.TRANSPOSE) {
         if (children.size() != 1) {
-            throw new IllegalArgumentException("Unary operator " + type + " requires exactly 1 operand");
+            throw new IllegalArgumentException(
+                "Unary operator " + type + " requires exactly 1 operand"
+            );
         }
     }
-}
+    }
+
+    // NEW HELPER METHOD: Recursively applies associative nesting to the whole tree
+    private void recursiveAssociativeNesting(ComputationNode node) {
+        if (node.getNodeType() == ComputationNodeType.MATRIX) {
+            return;
+        }
+
+        // 1. Fix the current node's structure (e.g., A+B+C -> (A+B)+C)
+        // This modifies the children list of 'node' in place.
+        node.associativeNesting();
+
+        // 2. Recursively fix all children.
+        // We must do this because node.associativeNesting() stops at binary nodes 
+        // and doesn't look deep enough into pre-existing children.
+        if (node.getChildren() != null) {
+            for (ComputationNode child : node.getChildren()) {
+                recursiveAssociativeNesting(child);
+            }
+        }
+    }
+
+
+
 
 
 }

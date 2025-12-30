@@ -198,4 +198,17 @@ public class SharedVector {
             writeUnlock();
         }
     }
+
+    @Override
+    public SharedVector clone(){
+        readLock();
+        try{
+            return new SharedVector(vector, orientation);
+        }
+        finally{
+            readUnlock();
+        }
+        
+    }
+    
 }
