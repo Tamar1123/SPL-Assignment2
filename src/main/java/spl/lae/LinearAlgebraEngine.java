@@ -21,11 +21,10 @@ public class LinearAlgebraEngine {
 
     public ComputationNode run(ComputationNode computationRoot) {
         // TODO: resolve computation tree step by step until final matrix is produced
-        
         if (computationRoot == null) {
         throw new IllegalArgumentException("Computation root is null");
         }
-
+        computationRoot.associativeNesting();
         // needs to keep resolving until the root becomes a matrix
         while (computationRoot.getNodeType() != ComputationNodeType.MATRIX) {
 
@@ -49,6 +48,7 @@ public class LinearAlgebraEngine {
     public void loadAndCompute(ComputationNode node) {
         // TODO: load operand matrices
         // TODO: create compute tasks & submit tasks to executor
+        validateTaskDimensions(node);
         ComputationNodeType type = node.getNodeType();
         List<ComputationNode> children = node.getChildren();
 
@@ -62,7 +62,6 @@ public class LinearAlgebraEngine {
         }
 
         List<Runnable> tasks;
-        // rightMatrix.loadRowMajor(new double[0][0]);
         
         switch (type) {
             case ADD:
@@ -83,11 +82,11 @@ public class LinearAlgebraEngine {
         }
         
         executor.submitAll(tasks);
-        try {
-             executor.shutdown();
-        } catch (InterruptedException e) {
-            throw new RuntimeException("Executor shutdown interrupted");
-        }
+        // try {
+        //      executor.shutdown();
+        // } catch (InterruptedException e) {
+        //     throw new RuntimeException("Executor shutdown interrupted");
+        // }
 
         double[][] result = leftMatrix.readRowMajor();
         node.resolve(result);
@@ -190,4 +189,36 @@ public class LinearAlgebraEngine {
     public void shutdown() throws InterruptedException{
         executor.shutdown();
     }
+
+    private void validateTaskDimensions(ComputationNode node) {
+    ComputationNodeType type = node.getNodeType();
+    List<ComputationNode> children = node.getChildren();
+
+    // Addition: Matrices must have identical dimensions 
+    if (type == ComputationNodeType.ADD) {
+        double[][] left = children.get(0).getMatrix();
+        double[][] right = children.get(1).getMatrix();
+        if (left.length != right.length || (left.length > 0 && left[0].length != right[0].length)) {
+            throw new IllegalArgumentException("Illegal operation: dimensions mismatch");
+        }
+    }
+
+    // Multiplication: Columns of left must match rows of right 
+    if (type == ComputationNodeType.MULTIPLY) {
+        double[][] left = children.get(0).getMatrix();
+        double[][] right = children.get(1).getMatrix();
+        if (left.length > 0 && left[0].length != right.length) {
+            throw new IllegalArgumentException("Illegal operation: dimensions mismatch");
+        }
+    }
+
+    // Unary Operators: Ensure exactly one operand is present 
+    if (type == ComputationNodeType.NEGATE || type == ComputationNodeType.TRANSPOSE) {
+        if (children.size() != 1) {
+            throw new IllegalArgumentException("Unary operator " + type + " requires exactly 1 operand");
+        }
+    }
+}
+
+
 }

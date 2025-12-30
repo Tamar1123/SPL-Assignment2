@@ -1,8 +1,8 @@
 package spl.lae;
 import java.io.IOException;
-import java.text.ParseException;
 
 import parser.ComputationNode;
+import parser.ComputationNodeType;
 import parser.InputParser;
 import parser.OutputWriter;
 
@@ -13,15 +13,22 @@ public class Main {
     String outputPath = args[2];
     InputParser parser = new InputParser();
     LinearAlgebraEngine lae = null;
-        try {
+      try {
         ComputationNode root = parser.parse(inputPath);   // parse JSON → computation tree
+        if (root == null) {
+            throw new IllegalArgumentException("Parsed computation tree is null");
+        }
+        else if (root.getNodeType() == ComputationNodeType.MATRIX) {
+          // if only a single matrix is provided, write it directly to output
+          OutputWriter.write(root.getMatrix(), outputPath);
+        }
+        else {
         lae = new LinearAlgebraEngine(numThreads);
         ComputationNode resultNode = lae.run(root);       // run engine until root is MATRIX
         double[][] result = resultNode.getMatrix();      // get final matrix
-
         OutputWriter.write(result, outputPath);          // write JSON output
-        
-    } catch (ParseException | IOException e) {
+      }
+    } catch (Exception e) {
         // write error JSON
         OutputWriter.write(e.getMessage(), outputPath);
     }
