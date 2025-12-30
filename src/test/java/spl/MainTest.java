@@ -23,7 +23,6 @@ public class MainTest {
         Path outputPath = tempDir.resolve("output.json");
         Files.writeString(inputPath, inputJson);
 
-        // FIX: Pass 3 arguments - [threads, inputPath, outputPath]
         String[] args = {"4", inputPath.toString(), outputPath.toString()};
         Main.main(args);
 
@@ -41,30 +40,27 @@ public class MainTest {
         Path outputPath = tempDir.resolve("error_output.json");
         Files.writeString(inputPath, inputJson);
 
-        // FIX: Pass 3 arguments
         String[] args = {"2", inputPath.toString(), outputPath.toString()};
         Main.main(args);
 
         assertTrue(Files.exists(outputPath));
         String content = Files.readString(outputPath);
-        // Your Main catches exceptions and writes e.getMessage() to the OutputWriter
+  
         assertTrue(content.contains("\"error\""), "Output should contain an error message.");
     }
 
     @Test
     public void testNaryAdditionPersistence() throws Exception {
-        // Test for the 4.0 vs 3.0 accumulation bug
         String inputJson = "{\"operator\": \"+\", \"operands\": [[[1.0]], [[1.0]], [[1.0]]]}";
         Path inputPath = tempDir.resolve("nary_input.json");
         Path outputPath = tempDir.resolve("nary_output.json");
         Files.writeString(inputPath, inputJson);
 
-        // FIX: Pass 3 arguments
         String[] args = {"4", inputPath.toString(), outputPath.toString()};
         Main.main(args);
 
         String content = Files.readString(outputPath);
-        // This will pass only if your LinearAlgebraEngine has the Deep Copy fix
+        
         assertTrue(content.contains("3.0"), "N-ary addition result should be 3.0.");
         assertFalse(content.contains("4.0"), "Bug detected: intermediate results leaked into final sum.");
     }
