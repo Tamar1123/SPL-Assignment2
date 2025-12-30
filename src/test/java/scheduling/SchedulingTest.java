@@ -79,7 +79,7 @@ public class SchedulingTest {
     for (int i = 0; i < numTasks; i++) {
         tasks.add(() -> {
             try {
-                // Simulate small work
+                // Simulate work
                 Thread.sleep(10); 
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
