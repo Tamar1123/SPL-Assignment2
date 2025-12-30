@@ -22,11 +22,9 @@ public class LinearAlgebraEngine {
         if (computationRoot == null) {
         throw new IllegalArgumentException("Computation root is null");
         }
-        //computationRoot.associativeNesting();
-        // FIX: Call the recursive helper instead of the single node method
+
         recursiveAssociativeNesting(computationRoot);
 
-        //applyAssociativeNestingForMultiply(computationRoot);
         // needs to keep resolving until the root becomes a matrix
         while (computationRoot.getNodeType() != ComputationNodeType.MATRIX) {
 
@@ -44,7 +42,7 @@ public class LinearAlgebraEngine {
 
 
     public void loadAndCompute(ComputationNode node) {
-        //node.associativeNesting();
+
         validateTaskDimensions(node);
         ComputationNodeType type = node.getNodeType();
         List<ComputationNode> children = node.getChildren();
