@@ -93,7 +93,6 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
             handoff.put(POISON_PILL);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            alive.set(false);
             this.interrupt();
         }
     }

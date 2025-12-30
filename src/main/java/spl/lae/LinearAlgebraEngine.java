@@ -1,10 +1,12 @@
 package spl.lae;
 
-import parser.*;
-import scheduling.*;
-import memory.*;
-
 import java.util.List;
+
+import memory.SharedMatrix;
+import memory.SharedVector;
+import parser.ComputationNode;
+import parser.ComputationNodeType;
+import scheduling.TiredExecutor;
 
 public class LinearAlgebraEngine {
 
@@ -60,7 +62,7 @@ public class LinearAlgebraEngine {
         }
 
         List<Runnable> tasks;
-        rightMatrix.loadRowMajor(new double[0][0]);
+        // rightMatrix.loadRowMajor(new double[0][0]);
         
         switch (type) {
             case ADD:
@@ -79,17 +81,13 @@ public class LinearAlgebraEngine {
             default:
                 throw new IllegalArgumentException("Unknown/unsupported computation type " + type);
         }
-
-
         
         executor.submitAll(tasks);
-        /*  while(true){
-            try{
-                executor.shutdown();
-                break;
-            }
-            catch(new InterruptedException());
-        }  */
+        try {
+             executor.shutdown();
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Executor shutdown interrupted");
+        }
 
         double[][] result = leftMatrix.readRowMajor();
         node.resolve(result);

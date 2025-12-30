@@ -12,7 +12,7 @@ public class SharedMatrix {
     public SharedMatrix(double[][] matrix) {
         // TODO: construct matrix as row-major SharedVectors
         loadRowMajor(matrix);
-    }
+   }
 
     public void loadRowMajor(double[][] matrix) {
         // TODO: replace internal data with new row-major matrix

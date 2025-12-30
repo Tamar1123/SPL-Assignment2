@@ -69,5 +69,33 @@ public class SchedulingTest {
         executor.shutdown();
         assertEquals(10, counter.get());
     }
+ 
 
+    @Test
+    public void testInFlightCounterIntegrity() throws InterruptedException {
+    int numTasks = 10;
+    AtomicInteger tasksNotFinished = new AtomicInteger(numTasks);
+    List<Runnable> tasks = new ArrayList<>();
+    for (int i = 0; i < numTasks; i++) {
+        tasks.add(() -> {
+            try {
+                // Simulate small work
+                Thread.sleep(10); 
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                tasksNotFinished.decrementAndGet();
+            }
+        });
+    }
+    // Submit all tasks
+    executor.submitAll(tasks);
+    assertEquals(tasksNotFinished.get(), 0, 
+        "All tasks should have completed their work");
+
+    assertEquals(0, executor.getInFlightCount(), 
+        "In-flight counter should return to 0 after all tasks complete");
+    
+    executor.shutdown();
+    }
 }

@@ -23,7 +23,6 @@ public class TiredExecutor {
         }
     }
     
-
     public void submit(Runnable task) {
         TiredThread worker = null;
         while (worker == null) {
@@ -33,6 +32,7 @@ public class TiredExecutor {
                 Thread.currentThread().interrupt();
             }
         }
+
         TiredThread finalWorker = worker;
 
         Runnable wrappedTask = () -> {
@@ -56,14 +56,18 @@ public class TiredExecutor {
         } catch (IllegalStateException e) {
             inFlight.decrementAndGet();
             idleMinHeap.add(finalWorker);
-            submit(task);
+            throw new RuntimeException("Failed to submit task to worker", e);
         }
     }
 
 
     public void submitAll(Iterable<Runnable> tasks) {
         for (Runnable task : tasks) {
-            submit(task);
+            try {
+                submit(task);
+            } catch (RuntimeException e) {
+                throw new RuntimeException("Failed to submit task: " + task);
+            }
         }
 
         //Wait for all tasks to be completed
@@ -83,9 +87,6 @@ public class TiredExecutor {
     public void shutdown() throws InterruptedException {
         for (TiredThread worker : workers) {
             worker.shutdown();
-            if (Thread.currentThread().isInterrupted()) {
-                throw new InterruptedException("Executor shutdown interrupted");
-            }
         }
         for (TiredThread worker : workers) {
             worker.join();
@@ -106,6 +107,10 @@ public class TiredExecutor {
                     worker.getTimeIdle() / 1_000_000_000.0);
         }
         return report;
+    }
+
+    int getInFlightCount() {
+        return inFlight.get();
     }
 
 }
