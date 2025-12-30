@@ -99,4 +99,27 @@ public class SchedulingTest {
     executor.shutdown();
     }
 
+<<<<<<< HEAD
+
+    // --- NEW EDGE CASE TESTS START HERE ---
+
+    @Test
+    public void testSubmitEmptyTaskList() {
+        // Edge Case: Submit an empty list of tasks.
+        // The executor should not block or throw an error.
+        List<Runnable> emptyTasks = new ArrayList<>();
+        executor.submitAll(emptyTasks);
+        
+        // If code reaches here without hanging, the test passes
+        assertEquals(0, executor.getInFlightCount());
+        
+        // Clean shutdown check
+        try {
+            executor.shutdown();
+        } catch (InterruptedException e) {
+            // fail if interrupted unexpectedly
+        }
+    }
+=======
+>>>>>>> 3e235a5b08805df010353aefa2c788e5acf065c2
 }
