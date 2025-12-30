@@ -93,4 +93,21 @@ public class SharedMatrixTest {
         assertEquals(6.6, currentData[1][1], 0.0001);
         assertNotEquals(1.0, currentData[0][0]);
     }
+
+
+    // --- NEW EDGE CASE TESTS START HERE ---
+
+    @Test
+    public void testSingleElementMatrix() {
+        // Edge Case: 1x1 Matrix
+        double[][] data = {{42.0}};
+        SharedMatrix m = new SharedMatrix(data);
+        
+        assertEquals(1, m.length());
+        assertEquals(42.0, m.get(0).get(0), 0.0001);
+        
+        double[][] out = m.readRowMajor();
+        assertEquals(1, out.length);
+        assertEquals(1, out[0].length);
+    }
 }

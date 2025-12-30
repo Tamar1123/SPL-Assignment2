@@ -73,4 +73,49 @@ public class SharedVectorTest {
         assertEquals(2.0, vector.get(1), 0.0001, "Second element should be 2.0");
         assertEquals(VectorOrientation.ROW_MAJOR, vector.getOrientation(), "Orientation should be ROW_MAJOR");
     }
+
+
+
+
+    // --- NEW EDGE CASE TESTS START HERE ---
+
+    @Test
+    public void testVecMatMulResizing() {
+        // Edge Case: Ensure the vector object updates its length and data correctly 
+        // when multiplied by a matrix with different column count.
+        
+        // Start: Vector length 3 ([1, 1, 1])
+        SharedVector v = new SharedVector(new double[]{1, 1, 1}, VectorOrientation.ROW_MAJOR);
+        
+        // Multiply by 3x2 matrix
+        double[][] matData = {
+            {1, 2},
+            {1, 2},
+            {1, 2}
+        };
+        SharedMatrix m = new SharedMatrix(matData);
+
+        v.vecMatMul(m);
+
+        // End: Vector length should now be 2
+        assertEquals(2, v.length(), "Vector should have resized from 3 to 2");
+        assertEquals(3.0, v.get(0), 0.0001); // 1+1+1
+        assertEquals(6.0, v.get(1), 0.0001); // 2+2+2
+    }
+
+    @Test
+    public void testDotProductOrthogonal() {
+        // Edge Case: Orthogonal vectors should result in exactly 0.0
+        SharedVector v1 = new SharedVector(new double[]{1, 0}, VectorOrientation.ROW_MAJOR);
+        SharedVector v2 = new SharedVector(new double[]{0, 1}, VectorOrientation.ROW_MAJOR);
+
+        assertEquals(0.0, v1.dot(v2), 0.0001);
+    }
+
+    @Test
+    public void testAddNullThrowsException() {
+        // Edge Case: Adding null should throw explicit exception
+        SharedVector v1 = new SharedVector(new double[]{1}, VectorOrientation.ROW_MAJOR);
+        assertThrows(IllegalArgumentException.class, () -> v1.add(null));
+    }
 }

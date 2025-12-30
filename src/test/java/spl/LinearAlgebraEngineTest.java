@@ -222,4 +222,70 @@ public void testIndependentExecutionIsolation() throws Exception {
 }
 
 
+// --- NEW EDGE CASE TESTS START HERE ---
+
+    @Test
+    public void testMultiplicationDimensionChange() {
+        // Edge Case: Vector-Matrix multiplication that changes the vector dimension.
+        // Input: 1x3 vector * 3x2 matrix = 1x2 vector
+        double[][] vec = {{1.0, 2.0, 3.0}};
+        double[][] mat = {
+            {1.0, 2.0},
+            {3.0, 4.0},
+            {5.0, 6.0}
+        };
+
+        ComputationNode nodeVec = new ComputationNode(vec);
+        ComputationNode nodeMat = new ComputationNode(mat);
+        ComputationNode root = new ComputationNode(ComputationNodeType.MULTIPLY, List.of(nodeVec, nodeMat));
+
+        ComputationNode resultNode = lae.run(root);
+        double[][] res = resultNode.getMatrix();
+
+        // 1x2 Result expected
+        assertEquals(1, res.length);
+        assertEquals(2, res[0].length);
+        
+        // Calculation: 
+        // [1*1 + 2*3 + 3*5,  1*2 + 2*4 + 3*6] = [1+6+15, 2+8+18] = [22, 28]
+        assertEquals(22.0, res[0][0], 0.0001);
+        assertEquals(28.0, res[0][1], 0.0001);
+    }
+
+    @Test
+    public void testZeroMatrixIdentity() {
+        // Edge Case: Adding a Zero Matrix should yield the original matrix
+        double[][] original = {{5.0, -3.0}, {2.0, 100.0}};
+        double[][] zero = {{0.0, 0.0}, {0.0, 0.0}};
+
+        ComputationNode root = new ComputationNode(ComputationNodeType.ADD, 
+            List.of(new ComputationNode(original), new ComputationNode(zero)));
+
+        ComputationNode result = lae.run(root);
+        double[][] resMatrix = result.getMatrix();
+
+        assertArrayEquals(original[0], resMatrix[0], 0.0001);
+        assertArrayEquals(original[1], resMatrix[1], 0.0001);
+    }
+
+    @Test
+    public void testMixedNegativeArithmetic() {
+        // Edge Case: (A * B) + Negate(C) with negative numbers
+        // A=[-1], B=[2] -> -2
+        // C=[5] -> Negate(C)=[-5]
+        // Result: -2 + (-5) = -7
+        
+        ComputationNode a = new ComputationNode(new double[][]{{-1.0}});
+        ComputationNode b = new ComputationNode(new double[][]{{2.0}});
+        ComputationNode c = new ComputationNode(new double[][]{{5.0}});
+
+        ComputationNode mult = new ComputationNode(ComputationNodeType.MULTIPLY, List.of(a, b));
+        ComputationNode neg = new ComputationNode(ComputationNodeType.NEGATE, List.of(c));
+        ComputationNode root = new ComputationNode(ComputationNodeType.ADD, List.of(mult, neg));
+
+        ComputationNode res = lae.run(root);
+        assertEquals(-7.0, res.getMatrix()[0][0], 0.0001);
+    }
+
+
 }
