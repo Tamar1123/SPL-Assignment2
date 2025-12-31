@@ -24,7 +24,6 @@ public class SharedVector {
     }
 
     public int length() {
-       
         readLock();
         try {
             return vector.length;
@@ -34,7 +33,6 @@ public class SharedVector {
     }
 
     public VectorOrientation getOrientation() {
-        
         readLock();
         try {
             return orientation;
@@ -65,14 +63,13 @@ public class SharedVector {
     }
 
     public void transpose() {
-        
         writeLock();
         try {
-        if (orientation == VectorOrientation.ROW_MAJOR) {
-            orientation = VectorOrientation.COLUMN_MAJOR;
-        } else {
-            orientation = VectorOrientation.ROW_MAJOR;
-        }
+            if (orientation == VectorOrientation.ROW_MAJOR) {
+                orientation = VectorOrientation.COLUMN_MAJOR;
+            } else {
+                orientation = VectorOrientation.ROW_MAJOR;
+            }
         } finally {
             writeUnlock();
         }
@@ -80,17 +77,17 @@ public class SharedVector {
 
     public void add(SharedVector other) {
         
-        if (other == null) throw new IllegalArgumentException("other is null");
+        if (other == null) 
+            throw new IllegalArgumentException("other is null");
         if (this.length() != other.length())
-            throw new IllegalArgumentException("add requires vectors of equal length");
+            throw new IllegalArgumentException("add requires both vectors to have the same length");
 
-        // We lock other for reading first, then lock this for writing
         other.readLock();
         this.writeLock();
 
         try {
             for (int i = 0; i < vector.length; i++) {
-                vector[i] += other.vector[i]; // read is safe because other is read-locked
+                vector[i] += other.vector[i];
             }
         } finally {
             this.writeUnlock();
@@ -115,17 +112,16 @@ public class SharedVector {
             throw new IllegalArgumentException("other is null");
         }
 
-        // we lock other first, then this
         other.readLock();
         this.readLock();
 
         try {
             if (this.vector.length != other.vector.length) {
-                throw new IllegalArgumentException("Dot product requires equal lengths of vectors");
+                throw new IllegalArgumentException("Dot product needs both vectors to have the same length");
             }
 
             double sum = 0.0;
-            for (int i = 0; i < this.vector.length; i++) {
+            for (int i = 0; i <this.vector.length; i++) {
                 sum += this.vector[i] * other.vector[i];
             }
             return sum;
@@ -142,31 +138,28 @@ public class SharedVector {
             throw new IllegalArgumentException("matrix is null");
         }
 
-        // row-vector × matrix
+
         if (this.getOrientation() != VectorOrientation.ROW_MAJOR) {
-            throw new IllegalStateException("vecMatMul requires this vector to be ROW_MAJOR");
+            throw new IllegalStateException("vecMatMul needs this vector to be a ROW_MAJOR");
         }
 
-        // copy the vector
-        double[] vecCopy;
+        double[] vectorCopy;
         readLock();
         try {
-            vecCopy = this.vector.clone();
+            vectorCopy = this.vector.clone();
         } finally {
             readUnlock();
         }
 
-        // read matrix as row major
-        double[][] mat = matrix.readRowMajor();
+        double[][] m = matrix.readRowMajor();
 
-        // dimension checks
-        if (mat.length != vecCopy.length) {
+        if (m.length != vectorCopy.length) {
             throw new IllegalArgumentException(
-                "Dimension mismatch: vector length=" + vecCopy.length + " but matrix rows=" + mat.length
+                "Dimension mismatch: vector length=" + vectorCopy.length + " but matrix rows=" + m.length
             );
         }
 
-        if (mat.length == 0) {
+        if (m.length == 0) {
             writeLock();
             try {
                 this.vector = new double[0];
@@ -177,13 +170,13 @@ public class SharedVector {
             return;
         }
 
-        int cols = mat[0].length;
+        int cols = m[0].length;
         double[] result = new double[cols];
 
         for (int j = 0; j < cols; j++) {
             double sum = 0.0;
-            for (int i = 0; i < mat.length; i++) {
-                sum += vecCopy[i] * mat[i][j];
+            for (int i = 0; i<m.length; i++) {
+                sum += vectorCopy[i] * m[i][j];
             }
             result[j] = sum;
         }
