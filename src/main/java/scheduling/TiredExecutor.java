@@ -90,36 +90,6 @@ public class TiredExecutor {
         }
     }
 
-    // public synchronized String getWorkerReport() {
-    //     String report = "Worker Report:\n";
-    //     double totalFatigue = 0;
-        
-    //     for (TiredThread worker : workers) {
-    //         if (!worker.isBusy())
-    //             worker.setIdleTime();
-    //             totalFatigue += worker.getFatigue();
-
-    //         report += String.format("Worker %d - Current status: %s, Fatigue: %.2f, Time Used: %.2f s, Time Idle: %.2f s\n",
-    //                 worker.getWorkerId(),
-    //                 worker.isBusy() ? "Busy" : "Idle",  
-    //                 worker.getFatigue() / 1_000_000_000.0,
-    //                 worker.getTimeUsed() / 1_000_000_000.0, 
-    //                 worker.getTimeIdle() / 1_000_000_000.0);
-    //     }
-        
-    //     if (workers.length > 0) {
-    //     double avgFatigue = totalFatigue / workers.length;
-    //     double sumSquaredDeviations = 0;
-    //     for (TiredThread worker : workers) {
-    //         double deviation = (worker.getFatigue() / 1_000_000_000.0) - avgFatigue;
-    //         sumSquaredDeviations += Math.pow(deviation, 2);
-    //     }
-
-    //     report += (String.format("Fairness Score (Sum of Squared Deviations): %.4f\n", sumSquaredDeviations));
-    // }
-    //     return report;
-    // }
-
 
     public synchronized String getWorkerReport() {
         String report = "Worker Report:\n";
