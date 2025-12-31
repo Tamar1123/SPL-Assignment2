@@ -23,13 +23,6 @@ public class LinearAlgebraEngineTest {
         lae = new LinearAlgebraEngine(4);
     }
 
-    // @AfterEach
-    // public void shutDown() throws InterruptedException {
-    //     // Ensure the executor is shut down cleanly after each test
-    //     if (lae != null) {
-    //         lae.shutdown();
-    //     }
-    // }
 
     @Test
     public void testBasicAddition() {
