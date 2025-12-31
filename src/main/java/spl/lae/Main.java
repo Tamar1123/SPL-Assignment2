@@ -32,17 +32,17 @@ public class Main {
         // write error JSON
         OutputWriter.write(e.getMessage(), outputPath);
     }
-    finally{
-      if(lae != null){
-        try{
-          lae.shutdown();
-        }
-        catch(InterruptedException e){
-          Thread.currentThread().interrupt();
-        }
+    // finally{
+    //   if(lae != null){
+    //     try{
+    //       lae.shutdown();
+    //     }
+    //     catch(InterruptedException e){
+    //       Thread.currentThread().interrupt();
+    //     }
         
-      }
-    }
+    //   }
+    // }
     
   }
 }
