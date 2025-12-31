@@ -54,7 +54,7 @@ public class LinearAlgebraEngine {
         ComputationNodeType type = node.getNodeType();
         List<ComputationNode> children = node.getChildren();
 
-        // we deep copy the left matrix
+        // Deep copy the left matrix
         double[][] originalLeft = children.get(0).getMatrix();
         double[][] deepCopyLeft = new double[originalLeft.length][];
         for (int i = 0; i < originalLeft.length; i++) {
@@ -62,7 +62,7 @@ public class LinearAlgebraEngine {
         }
         leftMatrix.loadRowMajor(deepCopyLeft);
 
-        // if right matrix exists, we load it
+        // If right matrix exists, we load it
         if (children.size() > 1) {
             rightMatrix.loadRowMajor(children.get(1).getMatrix());
         } else {

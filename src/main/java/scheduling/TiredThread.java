@@ -50,25 +50,6 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
         return timeIdle.get();
     }
 
-    // Update idle time.
-    public void setIdleTime() {
-        long oldVal;
-        long newVal;
-        do {
-            oldVal = timeIdle.get();
-            newVal = oldVal + (System.nanoTime() - idleStartTime.get());
-        } while (!timeIdle.compareAndSet(oldVal,newVal));
-        idleStartTime.set(System.nanoTime());
-    }
-
-    public void increaseTimeUsed(long time) {
-        long oldVal;
-        long newVal;
-        do {
-            oldVal = timeUsed.get();
-            newVal = oldVal + time;
-        } while (!timeUsed.compareAndSet(oldVal,newVal));
-    }
 
     /**
      * Assign a task to this worker.
@@ -132,5 +113,27 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
         if (diff > 0)
             return 1;
         return -1;
+    }
+
+    
+    // HERLPER FUNCTIONS 
+
+    public void setIdleTime() {
+        long oldVal;
+        long newVal;
+        do {
+            oldVal = timeIdle.get();
+            newVal = oldVal + (System.nanoTime() - idleStartTime.get());
+        } while (!timeIdle.compareAndSet(oldVal,newVal));
+        idleStartTime.set(System.nanoTime());
+    }
+
+    public void increaseTimeUsed(long time) {
+        long oldVal;
+        long newVal;
+        do {
+            oldVal = timeUsed.get();
+            newVal = oldVal + time;
+        } while (!timeUsed.compareAndSet(oldVal,newVal));
     }
 }

@@ -99,7 +99,6 @@ public class TiredExecutor {
             if (!worker.isBusy())
                 worker.setIdleTime();
             
-            // FIX: Normalize fatigue to seconds BEFORE adding to total
             double currentFatigue = worker.getFatigue() / 1_000_000_000.0;
             totalFatigue += currentFatigue;
 
@@ -111,11 +110,11 @@ public class TiredExecutor {
                     worker.getTimeIdle() / 1_000_000_000.0);
         }
         
-        if (workers.length > 0) { // Note: use .size() if workers is a List
+        if (workers.length > 0) { 
             double avgFatigue = totalFatigue / workers.length;
             double sumSquaredDeviations = 0;
             for (TiredThread worker : workers) {
-                // Calculation now uses consistent 'seconds' units
+ 
                 double deviation = (worker.getFatigue() / 1_000_000_000.0) - avgFatigue;
                 sumSquaredDeviations += Math.pow(deviation, 2);
             }
@@ -124,7 +123,11 @@ public class TiredExecutor {
         }
         return report;
     }
-    int getInFlightCount() {
+
+
+    // HELPER FUNCTIONS
+
+    public int getInFlightCount() {
         return inFlight.get();
     }
 
