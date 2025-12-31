@@ -57,7 +57,7 @@ public class SharedMatrix {
 
         SharedVector[] vecs_array = vectors;
 
-        VectorOrientation orientation = vecs[0].getOrientation();
+        VectorOrientation orientation = vecs_array[0].getOrientation();
         int rows, cols;
 
         if (orientation == VectorOrientation.ROW_MAJOR) {
