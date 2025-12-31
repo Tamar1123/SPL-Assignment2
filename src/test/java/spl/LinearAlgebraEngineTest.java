@@ -1,10 +1,10 @@
-package spl; // Updated to match the directory /src/test/java/spl/
+package spl; 
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals; // This resolves the tempDir variable
+import static org.junit.jupiter.api.Assertions.assertEquals; 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,7 +65,6 @@ public class LinearAlgebraEngineTest {
         ComputationNode node2 = new ComputationNode(m2);
         ComputationNode root = new ComputationNode(ComputationNodeType.ADD, List.of(node1, node2));
 
-        // Verifies the error message required by instructions
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             lae.run(root);
         });
@@ -84,9 +83,7 @@ public class LinearAlgebraEngineTest {
         ));
         ComputationNode root = new ComputationNode(ComputationNodeType.ADD, children);
         
-        // Apply nesting
         root.associativeNesting();
-        // After nesting, root should have 2 children.
         assertEquals(2, root.getChildren().size(), "Root should be binary after nesting");
         assertEquals(ComputationNodeType.ADD, root.getChildren().get(0).getNodeType(), 
             "Left child should be a nested ADD node");
@@ -94,12 +91,11 @@ public class LinearAlgebraEngineTest {
 
     @Test
     public void testDeepNestedAddition() {
-        // Operation: (((1+1)+1)+1) = 4
+        // (((1+1)+1)+1) = 4
         double[][] one = {{1.0}};
         ComputationNode node1 = new ComputationNode(one);
         ComputationNode node2 = new ComputationNode(one);
         
-        // Nesting 4 layers deep
         ComputationNode layer1 = new ComputationNode(ComputationNodeType.ADD, List.of(node1, node2)); // 2
         ComputationNode layer2 = new ComputationNode(ComputationNodeType.ADD, List.of(layer1, node1)); // 3
         ComputationNode root = new ComputationNode(ComputationNodeType.ADD, List.of(layer2, node1));  // 4
@@ -115,7 +111,7 @@ public class LinearAlgebraEngineTest {
         ComputationNode transNode = new ComputationNode(ComputationNodeType.TRANSPOSE, List.of(nodeA));
         ComputationNode root = new ComputationNode(ComputationNodeType.ADD, List.of(nodeA, transNode));
 
-        // This should fail because [[1, 2]] is 1x2 and Transpose is 2x1
+        // should fail
         assertThrows(IllegalArgumentException.class, () -> lae.run(root), 
             "Engine failed to detect mismatch after a unary operation!");
     }
@@ -151,7 +147,7 @@ public class LinearAlgebraEngineTest {
         ComputationNode resultNode = lae.run(root);
         double[][] res = resultNode.getMatrix();
 
-        // Every cell should be 2.0
+        // should be 2.0 in every cell
         for(int i=0; i<size; i++) {
             for(int j=0; j<size; j++) {
                 assertEquals(2.0, res[i][j], 0.0001, "Race condition detected at index ["+i+"]["+j+"]");
@@ -162,8 +158,6 @@ public class LinearAlgebraEngineTest {
 
     @Test
     public void testMultiplicationDimensionChange() {
-        // Edge Case: Vector-Matrix multiplication that changes the vector dimension.
-        // Input: 1x3 vector * 3x2 matrix = 1x2 vector
         double[][] vec = {{1.0, 2.0, 3.0}};
         double[][] mat = {
             {1.0, 2.0},
@@ -178,18 +172,18 @@ public class LinearAlgebraEngineTest {
         ComputationNode resultNode = lae.run(root);
         double[][] res = resultNode.getMatrix();
 
-        // 1x2 Result expected
+        // expected - 1x2 
         assertEquals(1, res.length);
         assertEquals(2, res[0].length);
         
-       // Result expectet [22, 28]
+       // expected - [22, 28]
         assertEquals(22.0, res[0][0], 0.0001);
         assertEquals(28.0, res[0][1], 0.0001);
     }
 
     @Test
     public void testZeroMatrixIdentity() {
-        // Edge Case: Adding a Zero Matrix should yield the original matrix
+
         double[][] original = {{5.0, -3.0}, {2.0, 100.0}};
         double[][] zero = {{0.0, 0.0}, {0.0, 0.0}};
 
@@ -205,7 +199,7 @@ public class LinearAlgebraEngineTest {
 
     @Test
     public void testMixedNegativeArithmetic() {
-        // Result expected: -2 + (-5) = -7
+        // expected: -2 + (-5) = -7
         
         ComputationNode a = new ComputationNode(new double[][]{{-1.0}});
         ComputationNode b = new ComputationNode(new double[][]{{2.0}});

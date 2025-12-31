@@ -30,7 +30,7 @@ public class SchedulingTest {
             executor.getWorkerReport()); 
 
               try {
-                  Thread.sleep(500); // Simulate work
+                  Thread.sleep(500);
               } catch (InterruptedException e) {
                   Thread.currentThread().interrupt();
               }
@@ -79,7 +79,6 @@ public class SchedulingTest {
     for (int i = 0; i < numTasks; i++) {
         tasks.add(() -> {
             try {
-                // Simulate work
                 Thread.sleep(10); 
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -102,19 +101,15 @@ public class SchedulingTest {
 
     @Test
     public void testSubmitEmptyTaskList() {
-        // Edge Case: Submit an empty list of tasks.
-        // The executor should not block or throw an error.
+        // executor should not block or throw an error on empty list of tasks
         List<Runnable> emptyTasks = new ArrayList<>();
         executor.submitAll(emptyTasks);
-        
-        // If code reaches here without hanging, the test passes
+     
         assertEquals(0, executor.getInFlightCount());
         
-        // Clean shutdown check
         try {
             executor.shutdown();
         } catch (InterruptedException e) {
-            // fail if interrupted unexpectedly
         }
     }
 }
